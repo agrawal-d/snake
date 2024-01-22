@@ -1,0 +1,10 @@
+{
+  "name": "snake",
+  "version": "1.0.0",
+  "description": "Snake game",
+  "author": "agrawal-d",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
