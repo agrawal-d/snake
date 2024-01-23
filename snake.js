@@ -1,6 +1,8 @@
 "use strict";
 const game = document.getElementById("game");
+const foodCanvas = document.getElementById("food-canvas");
 const ctx = game.getContext("2d");
+const foodCtx = foodCanvas.getContext("2d");
 const foodImage = document.getElementById("food-image");
 const pauseText = document.getElementById("pause-text");
 const scoreText = document.getElementById("score-text");
@@ -141,20 +143,25 @@ class Game {
         // Resize canvas to fit window
         game.width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         game.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+        foodCanvas.width = game.width;
+        foodCanvas.height = game.height;
         this.pause = false;
-        this.up_key = false;
-        this.down_key = false;
         this.togglePause();
         this.snake = new Snake(new Coord(100, 100));
         this.heading_sign = 1;
         this.game_loop_interval = -1;
         this.food = new Point(getRandomCoord(), getRandomColor());
-        document.addEventListener("keydown", (e) => this.handleKeydown(e));
-        document.addEventListener("keyup", (e) => this.handleKeyup(e));
-        window.requestAnimationFrame(() => this.animate());
+        this.mouse_x = this.snake.points[0].coord.x;
+        this.mouse_y = this.snake.points[0].coord.y;
+        window.addEventListener("mousemove", (e) => this.handleMouse(e));
         window.addEventListener("click", () => this.togglePause());
+        window.requestAnimationFrame(() => this.animate());
         scoreText.innerText = this.snake.getScore().toString();
         this.renderHighScore();
+    }
+    handleMouse(e) {
+        this.mouse_x = e.clientX;
+        this.mouse_y = e.clientY;
     }
     renderHighScore() {
         highScoreText.innerText = "HI " + getHighScore().toString();
@@ -167,6 +174,7 @@ class Game {
             window.requestAnimationFrame(() => this.animate());
             pauseText.style.display = "none";
             gameSound.play();
+            this.drawFood();
         }
         else {
             clearInterval(this.game_loop_interval);
@@ -189,8 +197,8 @@ class Game {
         ctx.fill();
     }
     drawFood() {
-        console.log(this.food.coord);
-        ctx.drawImage(foodImage, this.food.coord.x, this.food.coord.y, 32, 32);
+        console.log("Drawn food");
+        foodCtx.drawImage(foodImage, this.food.coord.x, this.food.coord.y, 32, 32);
     }
     animate() {
         ctx.clearRect(0, 0, game.width, game.height);
@@ -198,7 +206,6 @@ class Game {
             return;
         }
         this.drawSnake();
-        this.drawFood();
         window.requestAnimationFrame(() => this.animate());
     }
     isTouchingFood() {
@@ -234,8 +241,12 @@ class Game {
         this.snake.move();
         if (this.isTouchingFood()) {
             this.snake.points.push(this.food);
+            foodCtx.clearRect(this.food.coord.x, this.food.coord.y, this.FOOD_SQUARE_SIZE, this.FOOD_SQUARE_SIZE);
             this.food = new Point(getRandomCoord(), getRandomColor());
+            this.drawFood();
             scoreText.innerText = this.snake.getScore().toString();
+            foodSound.currentTime = 0;
+            foodSound.pause();
             foodSound.play();
         }
         if (this.isTouchingWall()) {
@@ -243,27 +254,22 @@ class Game {
         }
     }
     changeHeading() {
-        if (this.up_key) {
-            this.snake.reduceAngle();
+        // 1. Get heading w.r.t snake head
+        // 2. Use the stored mouse coords.
+        // 3. Depending on the shortest delta, either increase/decrease angle.
+        const head_x = this.snake.points[0].coord.x;
+        const head_y = this.snake.points[0].coord.y;
+        let angle = Math.atan2(this.mouse_y - head_y, this.mouse_x - head_x);
+        const headingAngle = this.snake.headingAngle;
+        const delta = Math.abs(angle - headingAngle);
+        if (delta > Math.PI) {
+            angle = angle - 2 * Math.PI;
         }
-        else if (this.down_key) {
+        if (angle > headingAngle) {
             this.snake.increaseAngle();
         }
-    }
-    handleKeyup(e) {
-        if (e.key === "ArrowUp" || e.key === "w") {
-            this.up_key = false;
-        }
-        if (e.key === "ArrowDown" || e.key === "s") {
-            this.down_key = false;
-        }
-    }
-    handleKeydown(e) {
-        if (e.key === "ArrowUp" || e.key === "w") {
-            this.up_key = true;
-        }
-        if (e.key === "ArrowDown" || e.key === "s") {
-            this.down_key = true;
+        else {
+            this.snake.reduceAngle();
         }
     }
 }
