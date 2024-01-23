@@ -30,7 +30,7 @@
 
         #game {
             z-index: -1;
-            background-color: black;
+            background: url('img/square.webp') repeat;
             margin: 0px !important;
             padding: 0px !important;
             position: fixed;
@@ -97,6 +97,14 @@
             color: red;
         }
 
+        #logo {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 5;
+            font-size: 60%;
+        }
+
         .ghost {
             width: 200px;
             height: 200px;
@@ -115,15 +123,16 @@
 
     <div id="pause-text">
         <h1>🐍<br />Snake</h1>
-        Paused. Click to start
+        Click to start
         <br>
-        <p id="controls-text">Up/Down or W/S to move snake</p>
+        <p id="controls-text">🖱️Use mouse to control direction.</p>
     </div>
     <div class="score">
         <span id="high-score-text">HI 0</span>
         <br>
         <span id="score-text">0</span>
     </div>
+    <span id="logo">🐍 Snake</span>
     <span id="game-over-text">Game Over Text</span>
     <div class="hidden">
         <img src="img/food.png" id="food-image">
