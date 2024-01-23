@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game</title>
     <style>
+        @font-face {
+            font-family: 'Retro Gaming';
+            src: url('./fonts/retro-gaming.ttf');
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -19,7 +24,7 @@
 
         body {
             background-color: grey;
-            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            font-family: 'Retro Gaming', Arial, sans-serif;
             font-size: 200%;
         }
 
@@ -40,7 +45,6 @@
             text-align: center;
             text-shadow: 1px 20px 10px black;
             padding: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
         }
 
         #controls-text {
@@ -51,13 +55,13 @@
             display: none;
         }
 
-        #score-text {
+        .score {
             position: fixed;
             top: 0px;
             right: 0px;
             padding: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
             font-weight: 900;
+            text-align: right;
         }
 
         #game-over-text {
@@ -67,12 +71,28 @@
             text-align: center;
             text-shadow: 1px 20px 10px black;
             padding: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
             display: none;
         }
 
         #final-score {
             color: aqua;
+        }
+
+        #high-score-text {
+            font-size: 50%;
+            margin-top: -10px;
+        }
+
+        #new-high-score {
+            color: red;
+        }
+
+        .ghost {
+            width: 200px;
+            height: 200px;
+            max-width: 80%;
+            margin: 0 auto;
+            display: block;
         }
     </style>
 </head>
@@ -82,15 +102,28 @@
         Your browser does not support the HTML5 canvas tag.
     </canvas>
     <div id="pause-text">
-        <h1>Snake</h1>
+        <h1>🐍<br />Snake</h1>
         Paused. Click to start
         <br>
         <p id="controls-text">Up/Down or W/S to move snake</p>
     </div>
-    <span id="score-text">Score</span>
+    <div class="score">
+        <span id="high-score-text">HI 0</span>
+        <br>
+        <span id="score-text">0</span>
+    </div>
     <span id="game-over-text">Game Over Text</span>
     <div class="hidden">
         <img src="img/food.png" id="food-image">
+        <audio id="food-sound">
+            <source src="music/food.wav" type="audio/wav">
+        </audio>
+        <audio id="game-sound" loop>
+            <source src="music/game-music.wav" type="audio/wav">
+        </audio>
+        <audio id="game-over-sound">
+            <source src="music/game-over.wav" type="audio/wav">
+        </audio>
     </div>
 
     <!-- Game logic -->

@@ -1,11 +1,22 @@
 "use strict";
 const game = document.getElementById("game");
 const ctx = game.getContext("2d");
-const pauseText = document.getElementById("pause-text");
 const foodImage = document.getElementById("food-image");
+const pauseText = document.getElementById("pause-text");
 const scoreText = document.getElementById("score-text");
+const highScoreText = document.getElementById("high-score-text");
 const gameOverText = document.getElementById("game-over-text");
+const gameSound = document.getElementById("game-sound");
+const foodSound = document.getElementById("food-sound");
+const gameOverSound = document.getElementById("game-over-sound");
 const BORDER_REGION_PX = 48;
+const HIGH_SCORE_KEY = "high-score";
+function getHighScore() {
+    return parseInt(localStorage.getItem(HIGH_SCORE_KEY) || "0");
+}
+function setHighScore(score) {
+    localStorage.setItem(HIGH_SCORE_KEY, score.toString());
+}
 var PointColors;
 (function (PointColors) {
     PointColors[PointColors["#990066"] = 0] = "#990066";
@@ -126,7 +137,7 @@ class Game {
     ;
     constructor() {
         this.UPDATE_SPEED_MS = 5;
-        this.FOOD_SQUARE_SIZE = 32;
+        this.FOOD_SQUARE_SIZE = 64;
         // Resize canvas to fit window
         game.width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         game.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -143,6 +154,10 @@ class Game {
         window.requestAnimationFrame(() => this.animate());
         window.addEventListener("click", () => this.togglePause());
         scoreText.innerText = this.snake.getScore().toString();
+        this.renderHighScore();
+    }
+    renderHighScore() {
+        highScoreText.innerText = "HI " + getHighScore().toString();
     }
     togglePause() {
         this.pause = !this.pause;
@@ -151,10 +166,12 @@ class Game {
             this.game_loop_interval = setInterval(this.gameLoop.bind(this), this.UPDATE_SPEED_MS);
             window.requestAnimationFrame(() => this.animate());
             pauseText.style.display = "none";
+            gameSound.play();
         }
         else {
             clearInterval(this.game_loop_interval);
             pauseText.style.display = "block";
+            gameSound.pause();
         }
     }
     drawSnake() {
@@ -177,11 +194,11 @@ class Game {
     }
     animate() {
         ctx.clearRect(0, 0, game.width, game.height);
-        this.drawSnake();
-        this.drawFood();
         if (this.pause) {
             return;
         }
+        this.drawSnake();
+        this.drawFood();
         window.requestAnimationFrame(() => this.animate());
     }
     isTouchingFood() {
@@ -197,6 +214,21 @@ class Game {
         const head_y = this.snake.points[0].coord.y;
         return head_x < 0 || head_x > game.width || head_y < 0 || head_y > game.height;
     }
+    gameOver() {
+        gameOverSound.play();
+        const isNewHighScore = this.snake.getScore() > getHighScore();
+        setHighScore(Math.max(getHighScore(), this.snake.getScore()));
+        this.renderHighScore();
+        this.togglePause();
+        gameOverText.style.display = "block";
+        gameOverText.innerHTML = `<h1><img src="img/ghost.png" class="ghost" alt="Ghost">Game Over!</h1><p id="final-score">You scored ${this.snake.getScore()} points.</p>Click anywhere to restart.`;
+        if (isNewHighScore) {
+            gameOverText.innerHTML += "<p id=\"new-high-score\">🎆🎆🎆 You just got a New high score! 🎆🎆🎆</p>";
+        }
+        ctx.clearRect(0, 0, game.width, game.height);
+        pauseText.style.display = "none";
+        window.onclick = () => location.reload();
+    }
     gameLoop() {
         this.changeHeading();
         this.snake.move();
@@ -204,19 +236,13 @@ class Game {
             this.snake.points.push(this.food);
             this.food = new Point(getRandomCoord(), getRandomColor());
             scoreText.innerText = this.snake.getScore().toString();
+            foodSound.play();
         }
         if (this.isTouchingWall()) {
-            this.togglePause();
-            gameOverText.style.display = "block";
-            gameOverText.innerHTML = `<h1>Game Over!</h1><p id="final-score">You scored ${this.snake.getScore()} points.</p><br/>Click anywhere to restart.`;
-            pauseText.style.display = "none";
-            window.onclick = () => location.reload();
+            this.gameOver();
         }
     }
-    // Depending on which key is pressed, call snake's reduceAngle or increaseAngle
-    // Only determine which method to call if more than one key is pressed
     changeHeading() {
-        const current_angle_deg = this.snake.headingAngle * 180 / Math.PI;
         if (this.up_key) {
             this.snake.reduceAngle();
         }
