@@ -2,6 +2,7 @@ const game = document.getElementById("game") as HTMLCanvasElement;
 const foodCanvas = document.getElementById("food-canvas") as HTMLCanvasElement;
 const ctx = game.getContext("2d") as CanvasRenderingContext2D;
 const foodCtx = foodCanvas.getContext("2d") as CanvasRenderingContext2D;
+const isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
 
 const foodImage = document.getElementById("food-image") as HTMLImageElement;
 
@@ -71,10 +72,10 @@ class Snake {
     headingAngle: number = 0; // radians (0 to 2pi )
 
     INITIAL_SIZE = 5;
-    ANGLE_DELTA_RADIAN = 2.5 / (180 / Math.PI); // 5 degrees
-    MOVEMENT_DELTA_PX = 2;
+    ANGLE_DELTA_RADIAN = 2.5 / (180 / Math.PI);
+    MOVEMENT_DELTA_PX = isMobile ? 1 : 2;
     EYE_COLOR = "black";
-    POINT_RADIUS = 15;
+    POINT_RADIUS = isMobile ? 10 : 15;
     DISTANCE_BETWEEN_POINTS = 2 * this.POINT_RADIUS - 5;
 
     constructor(initialPos: Coord) {
@@ -151,6 +152,7 @@ class Game {
         this.mouse_y = this.snake.points[0].coord.y;
 
         window.addEventListener("mousemove", (e) => this.handleMouse(e));
+        window.addEventListener("touchmove", (e) => this.handleTouch(e));
         window.addEventListener("click", () => this.togglePause());
 
         window.requestAnimationFrame(() => this.animate());
@@ -159,9 +161,14 @@ class Game {
         this.renderHighScore();
     }
 
-    handleMouse(e: any): any {
+    handleMouse(e: MouseEvent) {
         this.mouse_x = e.clientX;
         this.mouse_y = e.clientY;
+    }
+
+    handleTouch(e: TouchEvent) {
+        this.mouse_x = e.touches[0].clientX;
+        this.mouse_y = e.touches[0].clientY;
     }
 
     renderHighScore() {

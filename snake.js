@@ -3,6 +3,7 @@ const game = document.getElementById("game");
 const foodCanvas = document.getElementById("food-canvas");
 const ctx = game.getContext("2d");
 const foodCtx = foodCanvas.getContext("2d");
+const isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
 const foodImage = document.getElementById("food-image");
 const pauseText = document.getElementById("pause-text");
 const scoreText = document.getElementById("score-text");
@@ -94,10 +95,10 @@ class Snake {
         this.points = []; // head is at index 0
         this.headingAngle = 0; // radians (0 to 2pi )
         this.INITIAL_SIZE = 5;
-        this.ANGLE_DELTA_RADIAN = 2.5 / (180 / Math.PI); // 5 degrees
-        this.MOVEMENT_DELTA_PX = 2;
+        this.ANGLE_DELTA_RADIAN = 2.5 / (180 / Math.PI);
+        this.MOVEMENT_DELTA_PX = isMobile ? 1 : 2;
         this.EYE_COLOR = "black";
-        this.POINT_RADIUS = 15;
+        this.POINT_RADIUS = isMobile ? 10 : 15;
         this.DISTANCE_BETWEEN_POINTS = 2 * this.POINT_RADIUS - 5;
         this.points = [];
         for (let i = 0; i < this.INITIAL_SIZE; i++) {
@@ -154,6 +155,7 @@ class Game {
         this.mouse_x = this.snake.points[0].coord.x;
         this.mouse_y = this.snake.points[0].coord.y;
         window.addEventListener("mousemove", (e) => this.handleMouse(e));
+        window.addEventListener("touchmove", (e) => this.handleTouch(e));
         window.addEventListener("click", () => this.togglePause());
         window.requestAnimationFrame(() => this.animate());
         scoreText.innerText = this.snake.getScore().toString();
@@ -162,6 +164,10 @@ class Game {
     handleMouse(e) {
         this.mouse_x = e.clientX;
         this.mouse_y = e.clientY;
+    }
+    handleTouch(e) {
+        this.mouse_x = e.touches[0].clientX;
+        this.mouse_y = e.touches[0].clientY;
     }
     renderHighScore() {
         highScoreText.innerText = "HI " + getHighScore().toString();
